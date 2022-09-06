@@ -13,9 +13,9 @@ type RabbitMQ struct {
 	Forever chan struct{}
 }
 
-func NewRabbitMQ() (*RabbitMQ, error) {
+func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 	obj := RabbitMQ{}
-	connection, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	connection, err := amqp.Dial(rabbitmqAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (r *RabbitMQ) CloseConnections() {
 	r.conn.Close()
 }
 
-func (r *RabbitMQ) DeliverMessages() (<-chan amqp.Delivery, error) {
+func (r *RabbitMQ) TakeMessage() (<-chan string, error) {
 	msgs, err := r.channel.Consume(
 		r.queue.Name, // queue
 		"",           // consumer
@@ -77,5 +77,11 @@ func (r *RabbitMQ) DeliverMessages() (<-chan amqp.Delivery, error) {
 	if err != nil {
 		return nil, err
 	}
-	return msgs, nil
+	c := make(chan string)
+	go func() {
+		for msg := range msgs {
+			c <- string(msg.Body)
+		}
+	}()
+	return c, nil
 }
