@@ -63,10 +63,6 @@ func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
 }
 
 func main() {
-	log := zerolog.New(zerolog.ConsoleWriter{
-		Out:        os.Stderr,
-		TimeFormat: "2006-01-02T15:04:05.999Z07:00",
-	}).With().Timestamp().Logger()
 
 	//Global logging severity, change it if you don't want to see some logging ltvtl messages
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -85,7 +81,6 @@ func main() {
 		return
 	}
 	rabbitmqAddr := cfg.RabbitmqAddr
-	fmt.Println(rabbitmqAddr)
 	r, err := rabbitmq.NewRabbitMQ(rabbitmqAddr)
 	d := downloader.NewDownloader()
 	w := worker.NewWorker(r, d)
@@ -103,7 +98,7 @@ func main() {
 		go func(i int) {
 			log.Info().
 				Str("method", "Worker").
-				Msgf("Start worker: ", i)
+				Msgf("Start worker: %v", i)
 			w.Worker(ctx)
 			wg.Done()
 		}(i)

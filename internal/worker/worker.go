@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"fmt"
-	"log"
 )
 
 type Queue interface {
@@ -39,8 +38,9 @@ func (w *Worker) Worker(ctx context.Context) error {
 			w.q.CloseConnections()
 			return nil
 		case msg := <-msgs:
-			log.Println(msg)
+			fmt.Println(msg)
 			w.d.Download(msg)
 		}
+
 	}
 }
