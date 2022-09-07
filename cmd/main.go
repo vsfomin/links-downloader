@@ -63,7 +63,6 @@ func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
 }
 
 func main() {
-
 	//Global logging severity, change it if you don't want to see some logging ltvtl messages
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	var wg sync.WaitGroup
