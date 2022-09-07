@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type Downloader struct{}
@@ -15,6 +16,9 @@ func NewDownloader() *Downloader {
 }
 
 func (d *Downloader) Download(url string) (err error) {
+	client := http.Client{
+		Timeout: 6 * time.Second,
+	}
 	//Get filename
 	sl := strings.Split(url, "/")
 	filename := sl[len(sl)-1]
@@ -26,7 +30,7 @@ func (d *Downloader) Download(url string) (err error) {
 	defer out.Close()
 
 	// Get the data
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		return fmt.Errorf("error while trying to get request: %w", err)
 	}

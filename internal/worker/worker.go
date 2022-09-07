@@ -24,6 +24,7 @@ func NewWorker(queue Queue, download Download) *Worker {
 	newWorker := Worker{}
 	newWorker.q = queue
 	newWorker.d = download
+
 	return &newWorker
 }
 
@@ -32,15 +33,14 @@ func (w *Worker) Worker(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while consume queue: %w", err)
 	}
-	select {
-	case <-ctx.Done():
-		w.q.CloseConnections()
-	default:
-		for d := range msgs {
-			log.Printf("Received a message: %s", d)
-			w.d.Download(d)
+	for {
+		select {
+		case <-ctx.Done():
+			w.q.CloseConnections()
+			return nil
+		case msg := <-msgs:
+			log.Println(msg)
+			w.d.Download(msg)
 		}
 	}
-
-	return nil
 }

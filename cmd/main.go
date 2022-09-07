@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 
 	"github.com/fomik2/links-downloader/internal/downloader"
 	"github.com/fomik2/links-downloader/internal/rabbitmq"
 	"github.com/fomik2/links-downloader/internal/worker"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -26,6 +28,9 @@ type (
 func NewConfig() (Config, error) {
 	cfg := Config{}
 	data, err := os.Open("./config/config.yaml")
+	log.Info().
+		Str("method", "NewConfig").
+		Msgf("Openning config file...")
 	if err != nil {
 		return cfg, fmt.Errorf("open config file: %w", err)
 	}
@@ -45,25 +50,38 @@ func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
 	sig := <-signalCh
 	switch sig {
 	case syscall.SIGKILL:
+		log.Info().
+			Str("method", "waitSignal").
+			Msgf("Close connection due to SIGTERM...")
 		os.Exit(0)
 	case syscall.SIGINT:
+		log.Info().
+			Str("method", "waitSignal").
+			Msgf("Close connection due to SIGNIN...")
 		cancel()
 	}
 }
 
 func main() {
+	log := zerolog.New(zerolog.ConsoleWriter{
+		Out:        os.Stderr,
+		TimeFormat: "2006-01-02T15:04:05.999Z07:00",
+	}).With().Timestamp().Logger()
+
+	//Global logging severity, change it if you don't want to see some logging ltvtl messages
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	cfg, err := NewConfig()
-	fmt.Println(cfg)
 	if err != nil {
-		log.Println(err)
+		log.Error().Err(err).Msg("")
 		return
 	}
 
 	workers, err := strconv.Atoi(cfg.Workers)
 	if err != nil {
-		log.Println(err)
+		log.Error().Err(err).Msg("")
 		return
 	}
 	rabbitmqAddr := cfg.RabbitmqAddr
@@ -73,19 +91,23 @@ func main() {
 	w := worker.NewWorker(r, d)
 
 	if err != nil {
-		log.Println(err)
+		log.Error().Err(err).Msg("")
 		return
 	}
 
 	signalChannel := make(chan os.Signal, 2)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
+	go waitSignal(cancel, signalChannel)
 	for i := 0; i <= workers; i++ {
-		go w.Worker(ctx)
+		wg.Add(1)
+		go func(i int) {
+			log.Info().
+				Str("method", "Worker").
+				Msgf("Start worker: ", i)
+			w.Worker(ctx)
+			wg.Done()
+		}(i)
 	}
 
-	go waitSignal(cancel, signalChannel)
-
-	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
-	<-r.Forever
+	wg.Wait()
 }

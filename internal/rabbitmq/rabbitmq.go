@@ -1,8 +1,6 @@
 package rabbitmq
 
 import (
-	"log"
-
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -59,7 +57,6 @@ func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 }
 
 func (r *RabbitMQ) CloseConnections() {
-	log.Println("Close connection...")
 	r.channel.Close()
 	r.conn.Close()
 }
