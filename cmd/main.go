@@ -68,6 +68,7 @@ func main() {
 	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	cfg, err := NewConfig()
 	if err != nil {
 		log.Error().Err(err).Msg("")
@@ -81,7 +82,10 @@ func main() {
 	}
 	rabbitmqAddr := cfg.RabbitmqAddr
 	r, err := rabbitmq.NewRabbitMQ(rabbitmqAddr)
+	defer r.CloseConnections()
+
 	d := downloader.NewDownloader()
+
 	w := worker.NewWorker(r, d)
 
 	if err != nil {

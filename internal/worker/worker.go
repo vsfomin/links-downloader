@@ -7,7 +7,6 @@ import (
 
 type Queue interface {
 	TakeMessage() (<-chan string, error)
-	CloseConnections()
 }
 
 type Download interface {
@@ -15,32 +14,30 @@ type Download interface {
 }
 
 type Worker struct {
-	q Queue
-	d Download
+	queue    Queue
+	download Download
 }
 
 func NewWorker(queue Queue, download Download) *Worker {
 	newWorker := Worker{}
-	newWorker.q = queue
-	newWorker.d = download
+	newWorker.queue = queue
+	newWorker.download = download
 
 	return &newWorker
 }
 
 func (w *Worker) Worker(ctx context.Context) error {
-	msgs, err := w.q.TakeMessage()
+	msgs, err := w.queue.TakeMessage()
 	if err != nil {
 		return fmt.Errorf("error while consume queue: %w", err)
 	}
 	for {
 		select {
 		case <-ctx.Done():
-			w.q.CloseConnections()
 			return nil
 		case msg := <-msgs:
 			fmt.Println(msg)
-			w.d.Download(msg)
+			w.download.Download(msg)
 		}
-
 	}
 }
