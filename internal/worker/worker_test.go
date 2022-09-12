@@ -2,50 +2,66 @@ package worker
 
 import (
 	"context"
-	"errors"
 	"testing"
-	"time"
 
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 type MockQueue struct {
-	mock.Mock
+	Ch chan string
+}
+
+func (q MockQueue) AddMessage(msg string) {
+	q.Ch <- msg
+}
+
+func (q MockQueue) TakeMessage() (<-chan string, error) {
+	return q.Ch, nil
 }
 
 type MockDownloader struct {
-	mock.Mock
+	OnDownload func(msg string)
 }
 
-func (m *MockQueue) TakeMessage() (<-chan string, error) {
-	//args := m.Called()
-	strCh := make(chan string)
-	strCh <- "some_url/some.txt"
-	return strCh, nil
+func (d MockDownloader) Download(msg string) error {
+	d.OnDownload(msg)
+	return nil
 }
 
-func (d *MockDownloader) Download(url string) error {
-	if url == "some_url/some.txt" {
-		return nil
-	} else {
-		return errors.New(url)
+func TestWorkerReceiveMessage(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	newQueue := &MockQueue{
+		Ch: make(chan string),
 	}
-	// args := d.Called(url)
-	// return args.Error(1)
+	newDownload := &MockDownloader{}
+	newWorker := Worker{newQueue, newDownload}
+
+	go func() {
+		newWorker.Worker(ctx)
+	}()
+	expected := "hello world"
+	newDownload.OnDownload = func(actual string) {
+		if actual != expected {
+			t.Errorf("\"%v\" not equal \"%v\"", actual, expected)
+		}
+	}
+	newQueue.AddMessage(expected)
+
 }
 
-func TestWorker(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+func TestWorkerCloseContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	newQueue := &MockQueue{}
 	newDownload := &MockDownloader{}
-	//newDownload.On("Download").Return(nil)
 	newWorker := Worker{newQueue, newDownload}
-	err := newWorker.Worker(ctx)
-	if err == nil {
-		t.Errorf("test pass")
-	} else {
-		t.Errorf("test fail, want \"some_url/some.txt\", got: ")
-	}
+	resCh := make(chan error)
+	go func() {
+		resCh <- newWorker.Worker(ctx)
+	}()
+	cancel()
 
+	err := <-resCh
+	assert.Nil(t, err)
 }
