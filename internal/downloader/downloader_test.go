@@ -1,7 +1,6 @@
 package downloader
 
 import (
-	"io"
 	"log"
 	"testing"
 
@@ -14,17 +13,17 @@ func TestDownload(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		"GET",
-		"https://example.com",
+		"http://example.com",
 		httpmock.NewStringResponder(200, "resp string"),
 	)
 
 	dwnd := NewDownloader()
-	resp, err := dwnd.Download("https://example.com")
-	defer resp.Body.Close()
+	body, err := dwnd.Download("http://example.com")
+	//	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
 	}
-	body, err := io.ReadAll(resp.Body)
+
 	if err != nil {
 		log.Println(err)
 	}

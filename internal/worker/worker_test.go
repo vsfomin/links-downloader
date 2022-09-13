@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,7 +23,7 @@ type MockDownloader struct {
 	OnDownload func(msg string)
 }
 
-func (d MockDownloader) Download(msg string) (*http.Response, error) {
+func (d MockDownloader) Download(msg string) ([]byte, error) {
 	d.OnDownload(msg)
 	return nil, nil
 }

@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"errors"
 )
@@ -13,7 +12,7 @@ type Queue interface {
 }
 
 type Download interface {
-	Download(url string) (*http.Response, error)
+	Download(url string) ([]byte, error)
 }
 
 type Worker struct {

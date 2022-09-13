@@ -15,7 +15,7 @@ func NewDownloader() *Downloader {
 	return &Downloader{}
 }
 
-func (d *Downloader) Download(url string) (*http.Response, error) {
+func (d *Downloader) Download(url string) ([]byte, error) {
 	client := http.Client{
 		Timeout: 6 * time.Second,
 	}
@@ -29,14 +29,14 @@ func (d *Downloader) Download(url string) (*http.Response, error) {
 	}
 	defer out.Close()
 
-	// Get the data
+	//Get the data
 
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error geting request: %w", err)
 	}
+	body, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
-
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad status: %s", resp.Status)
@@ -48,5 +48,5 @@ func (d *Downloader) Download(url string) (*http.Response, error) {
 		return nil, fmt.Errorf("error while io copy: %w", err)
 	}
 
-	return resp, nil
+	return body, nil
 }
