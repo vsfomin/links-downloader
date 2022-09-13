@@ -1,7 +1,6 @@
 package downloader
 
 import (
-	"io"
 	"log"
 	"testing"
 
@@ -19,8 +18,7 @@ func TestDownload(t *testing.T) {
 	)
 
 	dwnd := NewDownloader()
-	resp, err := dwnd.Download("http://example.com")
-	body, err := io.ReadAll(resp.Body)
+	body, err := dwnd.Download("http://example.com")
 	//	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
@@ -30,5 +28,5 @@ func TestDownload(t *testing.T) {
 		log.Println(err)
 	}
 	assert.Nil(t, err)
-	assert.Equal(t, "resp stdring", string(body))
+	assert.Equal(t, "resp string", string(body))
 }
