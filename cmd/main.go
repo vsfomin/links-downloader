@@ -66,8 +66,6 @@ func main() {
 	//Global logging severity, change it if you don't want to see some logging ltvtl messages
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	cfg, err := NewConfig()
 	if err != nil {
@@ -92,20 +90,25 @@ func main() {
 		log.Error().Err(err).Msg("")
 		return
 	}
-
+	ctx, cancel := context.WithCancel(context.Background())
 	signalChannel := make(chan os.Signal, 2)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 	go waitSignal(cancel, signalChannel)
+	errCh := make(chan error)
 	for i := 0; i <= workers; i++ {
 		wg.Add(1)
 		go func(i int) {
 			log.Info().
 				Str("method", "Worker").
 				Msgf("Start worker: %v", i)
-			w.Worker(ctx)
+			errCh <- w.StartReceiveMessages(ctx)
 			wg.Done()
 		}(i)
 	}
-
+	go func() {
+		for err := range errCh {
+			log.Error().Err(err).Msg("")
+		}
+	}()
 	wg.Wait()
 }

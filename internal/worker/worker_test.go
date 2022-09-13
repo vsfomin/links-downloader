@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,12 +24,44 @@ type MockDownloader struct {
 	OnDownload func(msg string)
 }
 
-func (d MockDownloader) Download(msg string) error {
+func (d MockDownloader) Download(msg string) (*http.Response, error) {
 	d.OnDownload(msg)
-	return nil
+	return nil, nil
 }
 
-func TestWorkerReceiveMessage(t *testing.T) {
+func TestReceiveMessage(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	newQueue := &MockQueue{
+		Ch: make(chan string, 5),
+	}
+	actual := "hello world"
+	newQueue.AddMessage(actual)
+	newDownload := &MockDownloader{}
+	newWorker := Worker{newQueue, newDownload}
+	newDownload.OnDownload = func(actual string) {
+		close(newQueue.Ch)
+		if actual != "hello world" {
+			t.Errorf("\"%v\" not equal \"%v\"", actual, "hello world")
+		}
+	}
+	newWorker.StartReceiveMessages(ctx)
+}
+
+func TestReceiveMessagetoCloseChannel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	newQueue := &MockQueue{
+		Ch: make(chan string, 5),
+	}
+	close(newQueue.Ch)
+	newDownload := &MockDownloader{}
+	newWorker := Worker{newQueue, newDownload}
+	err := newWorker.StartReceiveMessages(ctx)
+	assert.Nil(t, err)
+}
+
+func TestCloseContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	newQueue := &MockQueue{
@@ -36,32 +69,12 @@ func TestWorkerReceiveMessage(t *testing.T) {
 	}
 	newDownload := &MockDownloader{}
 	newWorker := Worker{newQueue, newDownload}
-
-	go func() {
-		newWorker.Worker(ctx)
-	}()
-	expected := "hello world"
-	newDownload.OnDownload = func(actual string) {
-		if actual != expected {
-			t.Errorf("\"%v\" not equal \"%v\"", actual, expected)
-		}
-	}
-	newQueue.AddMessage(expected)
-
-}
-
-func TestWorkerCloseContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	newQueue := &MockQueue{}
-	newDownload := &MockDownloader{}
-	newWorker := Worker{newQueue, newDownload}
 	resCh := make(chan error)
 	go func() {
-		resCh <- newWorker.Worker(ctx)
+		resCh <- newWorker.StartReceiveMessages(ctx)
 	}()
 	cancel()
-
 	err := <-resCh
-	assert.Nil(t, err)
+	expectedError := "Exit due to SIGNIN"
+	assert.EqualErrorf(t, err, expectedError, "Error shoud be %v, but got %v", expectedError, err)
 }
