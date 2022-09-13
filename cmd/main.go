@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -46,7 +45,7 @@ func NewConfig() (Config, error) {
 	return cfg, err
 }
 
-func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
+func waitSignal(signalCh chan os.Signal) {
 	sig := <-signalCh
 	switch sig {
 	case syscall.SIGKILL:
@@ -58,7 +57,6 @@ func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
 		log.Info().
 			Str("method", "waitSignal").
 			Msgf("Close connection due to SIGNIN...")
-		cancel()
 	}
 }
 
@@ -66,8 +64,6 @@ func main() {
 	//Global logging severity, change it if you don't want to see some logging ltvtl messages
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	cfg, err := NewConfig()
 	if err != nil {
@@ -95,14 +91,14 @@ func main() {
 
 	signalChannel := make(chan os.Signal, 2)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-	go waitSignal(cancel, signalChannel)
+	go waitSignal(signalChannel)
 	for i := 0; i <= workers; i++ {
 		wg.Add(1)
 		go func(i int) {
 			log.Info().
 				Str("method", "Worker").
 				Msgf("Start worker: %v", i)
-			w.Worker(ctx)
+			w.Worker()
 			wg.Done()
 		}(i)
 	}

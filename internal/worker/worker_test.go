@@ -1,10 +1,7 @@
 package worker
 
 import (
-	"context"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type MockQueue struct {
@@ -29,39 +26,33 @@ func (d MockDownloader) Download(msg string) error {
 }
 
 func TestWorkerReceiveMessage(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	newQueue := &MockQueue{
-		Ch: make(chan string),
+		Ch: make(chan string, 5),
 	}
+	expected := "hello world5"
+	newQueue.AddMessage(expected)
 	newDownload := &MockDownloader{}
 	newWorker := Worker{newQueue, newDownload}
-
-	go func() {
-		newWorker.Worker(ctx)
-	}()
-	expected := "hello world"
 	newDownload.OnDownload = func(actual string) {
-		if actual != expected {
+		close(newQueue.Ch)
+		if actual != "hello world" {
 			t.Errorf("\"%v\" not equal \"%v\"", actual, expected)
 		}
 	}
-	newQueue.AddMessage(expected)
-
+	newWorker.Worker()
 }
 
 func TestWorkerCloseContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	newQueue := &MockQueue{}
+	newQueue := &MockQueue{
+		Ch: make(chan string, 5),
+	}
+	expected := "hello world"
+	newQueue.AddMessage(expected)
 	newDownload := &MockDownloader{}
 	newWorker := Worker{newQueue, newDownload}
-	resCh := make(chan error)
-	go func() {
-		resCh <- newWorker.Worker(ctx)
-	}()
-	cancel()
-
-	err := <-resCh
-	assert.Nil(t, err)
+	newDownload.OnDownload = func(actual string) {
+		t.Errorf("Message received")
+	}
+	close(newQueue.Ch)
+	newWorker.Worker()
 }

@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -26,18 +25,17 @@ func NewWorker(queue Queue, download Download) *Worker {
 	return &newWorker
 }
 
-func (w *Worker) Worker(ctx context.Context) error {
+func (w *Worker) Worker() error {
 	msgs, err := w.queue.TakeMessage()
 	if err != nil {
 		return fmt.Errorf("error while consume queue: %w", err)
 	}
 	for {
-		select {
-		case <-ctx.Done():
+		msg, ok := <-msgs
+		if !ok {
 			return nil
-		case msg := <-msgs:
-			fmt.Println(msg)
-			w.download.Download(msg)
 		}
+		fmt.Println(msg)
+		w.download.Download(msg)
 	}
 }
