@@ -1,7 +1,11 @@
 package worker
 
 import (
+	"context"
+	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type MockQueue struct {
@@ -20,39 +24,57 @@ type MockDownloader struct {
 	OnDownload func(msg string)
 }
 
-func (d MockDownloader) Download(msg string) error {
+func (d MockDownloader) Download(msg string) (*http.Response, error) {
 	d.OnDownload(msg)
-	return nil
+	return nil, nil
 }
 
-func TestWorkerReceiveMessage(t *testing.T) {
+func TestReceiveMessage(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	newQueue := &MockQueue{
 		Ch: make(chan string, 5),
 	}
-	expected := "hello world5"
-	newQueue.AddMessage(expected)
+	actual := "hello world"
+	newQueue.AddMessage(actual)
 	newDownload := &MockDownloader{}
 	newWorker := Worker{newQueue, newDownload}
 	newDownload.OnDownload = func(actual string) {
 		close(newQueue.Ch)
 		if actual != "hello world" {
-			t.Errorf("\"%v\" not equal \"%v\"", actual, expected)
+			t.Errorf("\"%v\" not equal \"%v\"", actual, "hello world")
 		}
 	}
-	newWorker.Worker()
+	newWorker.StartReceiveMessages(ctx)
 }
 
-func TestWorkerCloseContext(t *testing.T) {
+func TestReceiveMessagetoCloseChannel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	newQueue := &MockQueue{
 		Ch: make(chan string, 5),
 	}
-	expected := "hello world"
-	newQueue.AddMessage(expected)
+	close(newQueue.Ch)
 	newDownload := &MockDownloader{}
 	newWorker := Worker{newQueue, newDownload}
-	newDownload.OnDownload = func(actual string) {
-		t.Errorf("Message received")
+	err := newWorker.StartReceiveMessages(ctx)
+	assert.Nil(t, err)
+}
+
+func TestCloseContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	newQueue := &MockQueue{
+		Ch: make(chan string),
 	}
-	close(newQueue.Ch)
-	newWorker.Worker()
+	newDownload := &MockDownloader{}
+	newWorker := Worker{newQueue, newDownload}
+	resCh := make(chan error)
+	go func() {
+		resCh <- newWorker.StartReceiveMessages(ctx)
+	}()
+	cancel()
+	err := <-resCh
+	expectedError := "Exit due to SIGNIN"
+	assert.EqualErrorf(t, err, expectedError, "Error shoud be %v, but got %v", expectedError, err)
 }

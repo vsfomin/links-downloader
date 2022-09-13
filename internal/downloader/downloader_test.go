@@ -3,7 +3,6 @@ package downloader
 import (
 	"io"
 	"log"
-	"net/http"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -20,21 +19,15 @@ func TestDownload(t *testing.T) {
 	)
 
 	dwnd := NewDownloader()
-	resp1, _ := dwnd.Download("https://example.com")
-	body1, err := io.ReadAll(resp1.Body)
-	resp1Body := resp1.Body
-	log.Println(resp1Body)
+	resp, err := dwnd.Download("https://example.com")
+	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("RESP1: ", string(body1))
-
-	resp, _ := http.Get("https://example.com")
-	respBody := resp1.Body
-	log.Println(respBody)
-	body, _ := io.ReadAll(resp.Body)
-	log.Println("RESP: ", string(body))
-
-	//assert.Nil(t, err)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	assert.Nil(t, err)
 	assert.Equal(t, "resp string", string(body))
 }

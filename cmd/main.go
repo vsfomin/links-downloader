@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -45,7 +46,7 @@ func NewConfig() (Config, error) {
 	return cfg, err
 }
 
-func waitSignal(signalCh chan os.Signal) {
+func waitSignal(cancel context.CancelFunc, signalCh chan os.Signal) {
 	sig := <-signalCh
 	switch sig {
 	case syscall.SIGKILL:
@@ -57,6 +58,7 @@ func waitSignal(signalCh chan os.Signal) {
 		log.Info().
 			Str("method", "waitSignal").
 			Msgf("Close connection due to SIGNIN...")
+		cancel()
 	}
 }
 
@@ -88,20 +90,25 @@ func main() {
 		log.Error().Err(err).Msg("")
 		return
 	}
-
+	ctx, cancel := context.WithCancel(context.Background())
 	signalChannel := make(chan os.Signal, 2)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-	go waitSignal(signalChannel)
+	go waitSignal(cancel, signalChannel)
+	errCh := make(chan error)
 	for i := 0; i <= workers; i++ {
 		wg.Add(1)
 		go func(i int) {
 			log.Info().
 				Str("method", "Worker").
 				Msgf("Start worker: %v", i)
-			w.Worker()
+			errCh <- w.StartReceiveMessages(ctx)
 			wg.Done()
 		}(i)
 	}
-
+	go func() {
+		for err := range errCh {
+			log.Error().Err(err).Msg("")
+		}
+	}()
 	wg.Wait()
 }
