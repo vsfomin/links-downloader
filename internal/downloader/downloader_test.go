@@ -14,20 +14,21 @@ func TestDownload(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		"GET",
-		"https://example.com",
+		"http://example.com",
 		httpmock.NewStringResponder(200, "resp string"),
 	)
 
 	dwnd := NewDownloader()
-	resp, err := dwnd.Download("https://example.com")
-	defer resp.Body.Close()
+	resp, err := dwnd.Download("http://example.com")
+	body, err := io.ReadAll(resp.Body)
+	//	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
 	}
-	body, err := io.ReadAll(resp.Body)
+
 	if err != nil {
 		log.Println(err)
 	}
 	assert.Nil(t, err)
-	assert.Equal(t, "resp string", string(body))
+	assert.Equal(t, "resp stdring", string(body))
 }

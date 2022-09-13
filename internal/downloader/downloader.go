@@ -29,13 +29,12 @@ func (d *Downloader) Download(url string) (*http.Response, error) {
 	}
 	defer out.Close()
 
-	// Get the data
+	//Get the data
 
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error geting request: %w", err)
 	}
-	defer resp.Body.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
