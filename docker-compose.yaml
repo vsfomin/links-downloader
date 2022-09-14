@@ -1,0 +1,33 @@
+version: "3.3"
+services:
+  publisher:
+    build: ../publisher
+    restart: always
+    container_name: publisher
+    ports:
+      - 5002:5002
+    volumes:
+    - ./config/config.yaml:/config/config.yaml
+    depends_on:
+      - rabbitmq
+
+  
+  link-downloader:
+    build: .
+    restart: always
+    container_name: link-downloader
+    volumes:
+    - ./config/config.yaml:/config/config.yaml
+    depends_on:
+      - rabbitmq
+
+
+  rabbitmq:
+    restart: always
+    container_name: rabbitmq
+    image: rabbitmq:3.10-management
+    ports:
+      - 5672:5672
+    
+
+
