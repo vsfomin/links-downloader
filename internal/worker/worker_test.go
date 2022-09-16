@@ -44,7 +44,8 @@ func TestReceiveMessage(t *testing.T) {
 			t.Errorf("\"%v\" not equal \"%v\"", actual, "hello world")
 		}
 	}
-	newWorker.StartReceiveMessages(ctx)
+	err := newWorker.StartReceiveMessages(ctx)
+	assert.Nil(t, err)
 }
 
 func TestReceiveMessagetoCloseChannel(t *testing.T) {

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/signal"
 	"strconv"
@@ -35,7 +35,7 @@ func NewConfig() (Config, error) {
 		return cfg, fmt.Errorf("open config file: %w", err)
 	}
 	defer data.Close()
-	byteData, err := ioutil.ReadAll(data)
+	byteData, err := io.ReadAll(data)
 	if err != nil {
 		return cfg, fmt.Errorf("read config file: %w", err)
 	}

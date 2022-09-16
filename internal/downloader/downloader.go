@@ -36,6 +36,9 @@ func (d *Downloader) Download(url string) ([]byte, error) {
 		return nil, fmt.Errorf("error geting request: %w", err)
 	}
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("some problem when reading response: %w", err)
+	}
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {

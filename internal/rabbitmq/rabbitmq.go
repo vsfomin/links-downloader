@@ -1,6 +1,8 @@
 package rabbitmq
 
 import (
+	"fmt"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -19,7 +21,7 @@ func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 	}
 	ch, err := connection.Channel()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("problem relqated to channel, %w", err)
 	}
 	err = ch.ExchangeDeclare(
 		"download", // name
@@ -30,6 +32,9 @@ func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 		false,      // no-wait
 		nil,        // arguments
 	)
+	if err != nil {
+		return nil, fmt.Errorf("problem related to exchange declaration, %w", err)
+	}
 	q, err := ch.QueueDeclare(
 		"",    // name
 		false, // durable
@@ -38,6 +43,9 @@ func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 		false, // no-wait
 		nil,   // arguments
 	)
+	if err != nil {
+		return nil, fmt.Errorf("problem related to queue declare, %w", err)
+	}
 	err = ch.QueueBind(
 		q.Name,     // queue name
 		"",         // routing key
@@ -45,11 +53,9 @@ func NewRabbitMQ(rabbitmqAddr string) (*RabbitMQ, error) {
 		false,
 		nil,
 	)
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("problem related to QueueBind, %w", err)
 	}
-
 	obj.conn = connection
 	obj.queue = q
 	obj.channel = ch
