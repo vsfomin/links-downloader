@@ -3,7 +3,7 @@ services:
   publisher:
     build: ../publisher
     restart: always
-    image: ${DC_IMAGE_NAME}:${DC_TAG}
+    image: fomik2/publisher:${DC_TAG}
     container_name: publisher
     ports:
       - 5002:5002
@@ -16,7 +16,7 @@ services:
   link-downloader:
     build: .
     restart: always
-    image: ${DC_IMAGE_NAME}:${DC_TAG}
+    image: fomik2/${DC_IMAGE_NAME}:${DC_TAG}
     container_name: link-downloader
     volumes:
     - ./config/config.yaml:/config/config.yaml
