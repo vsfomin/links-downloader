@@ -10,7 +10,9 @@ services:
     volumes:
     - ./config/config.yaml:/config/config.yaml
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+
 
   
   link-downloader:
@@ -21,7 +23,8 @@ services:
     volumes:
     - ./config/config.yaml:/config/config.yaml
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
 
   rabbitmq:
@@ -31,7 +34,7 @@ services:
     ports:
       - 5672:5672
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: rabbitmq-diagnostics check_port_connectivity
       interval: 15s
       timeout: 15s
       retries: 3
