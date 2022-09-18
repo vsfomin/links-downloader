@@ -9,3 +9,5 @@
 `git clone git@github.com:vsfomin/publisher.git`
 
 `docker-compose up -d`
+
+test
