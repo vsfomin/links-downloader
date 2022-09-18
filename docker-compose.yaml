@@ -10,8 +10,7 @@ services:
     volumes:
     - ./config/config.yaml:/config/config.yaml
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
 
 
   
@@ -23,8 +22,7 @@ services:
     volumes:
     - ./config/config.yaml:/config/config.yaml
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
 
 
   rabbitmq:
