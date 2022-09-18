@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   publisher:
-    build: ../publisher
+    build: ./publisher
     restart: always
     image: fomik2/publisher:${DC_TAG}
     container_name: publisher
