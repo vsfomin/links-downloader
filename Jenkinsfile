@@ -22,10 +22,12 @@ pipeline {
             }
         }
         stage('Test') {
+            def scannerHome = tool 'sonarqube';
             steps {
+                
                 echo 'This is a unit tests steps'
                 withSonarQubeEnv(installationName: 'sonarqube') {
-                    sh '~/sonar/bin/sonar-scanner'
+                    sh './sonar-scanner'
                 }
                 sh 'go test ./...'
             }
