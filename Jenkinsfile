@@ -2,8 +2,11 @@ pipeline {
     environment {
         registry = "fomik2/link-downloader"
         registryCredential = credentials('docker-registry')
+        PATH = "/home/jenkins/sonar/bin:$PATH"
     }
     agent any
+    
+    tools { go '1.19' }
 
     stages {
         stage ('Pre-Build') {
@@ -25,7 +28,7 @@ pipeline {
             steps {
                 echo 'This is a unit tests steps'
                 withSonarQubeEnv(installationName: 'sonarqube') {
-                    sh '~/sonar/bin/sonar-scanner'
+                    sh "sonar-scanner"
                 }
                 sh 'go test ./...'
             }
