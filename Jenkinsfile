@@ -24,9 +24,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'This is a unit tests steps'
-                withSonarQubeEnv('sonarqube', envOnly: true) {
+                withSonarQubeEnv(installationName: 'sonarqube') {
                     sh '~/sonar/bin/sonar-scanner'
-                    println ${env.SONAR_HOST_URL} 
                 }
                 sh 'go test ./...'
             }
