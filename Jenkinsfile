@@ -63,7 +63,7 @@ pipeline {
         
     }
         post {
-            always {
+            success {
                 sh "docker images | grep none | awk \'{print \$3}\' | xargs -I \'{}\' docker image rm \'{}\' -f "
                 //sh "docker images | grep version-${currentBuild.previousBuild.number} | awk \'{print \$3}\' | xargs -I \'{}\' docker image rm \'{}\' -f "
                 //sh 'docker logout'
