@@ -24,6 +24,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'This is a unit tests steps'
+                sh 'sonar-scanner'
+                sh 'go test ./...'
             }
         }
             

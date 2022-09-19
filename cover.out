@@ -1,0 +1,23 @@
+mode: set
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:14.34,16.2 1 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:18.59,27.16 5 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:30.2,35.16 3 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:38.2,39.16 2 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:42.2,44.38 2 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:49.2,50.16 2 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:54.2,54.18 1 1
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:27.16,29.3 1 0
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:35.16,37.3 1 0
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:39.16,41.3 1 0
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:44.38,46.3 1 0
+github.com/fomik2/links-downloader/internal/downloader/downloader.go:50.16,52.3 1 0
+github.com/fomik2/links-downloader/internal/worker/worker.go:23.56,29.2 4 0
+github.com/fomik2/links-downloader/internal/worker/worker.go:31.66,33.16 2 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:36.2,36.6 1 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:33.16,35.3 1 0
+github.com/fomik2/links-downloader/internal/worker/worker.go:36.6,37.10 1 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:38.21,39.43 1 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:40.26,41.11 1 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:44.4,46.18 3 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:41.11,43.5 1 1
+github.com/fomik2/links-downloader/internal/worker/worker.go:46.18,48.5 1 0
