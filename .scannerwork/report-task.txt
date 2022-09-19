@@ -2,5 +2,5 @@ projectKey=link-downloader
 serverUrl=http://localhost:9000
 serverVersion=8.9.9.56886
 dashboardUrl=http://localhost:9000/dashboard?id=link-downloader
-ceTaskId=AYNVQDnD9cptavLlAcmn
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AYNVQDnD9cptavLlAcmn
+ceTaskId=AYNVV9UG9cptavLlAcmo
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYNVV9UG9cptavLlAcmo
